@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Email tạm miễn phí</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { color: #333; }
+    button { margin: 5px; padding: 8px 12px; cursor: pointer; }
+    #inbox { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h2>Email tạm</h2>
+  <button onclick="getEmail()">Tạo email</button>
+  <p>Email của bạn: <span id="email"></span></p>
+  <button onclick="checkInbox()">Làm mới hộp thư</button>
+  <div id="inbox"></div>
+
+<script>
+let emailUser = "", emailDomain = "";
+
+function getEmail() {
+  emailUser = Math.random().toString(36).substring(2,10);
+  emailDomain = "1secmail.com";
+  document.getElementById("email").innerText = emailUser + "@" + emailDomain;
+}
+
+async function checkInbox() {
+  if (!emailUser) return alert("Hãy tạo email trước");
+  let url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${emailUser}&domain=${emailDomain}`;
+  let res = await fetch(url);
+  let data = await res.json();
+  let inboxDiv = document.getElementById("inbox");
+  inboxDiv.innerHTML = "";
+  if (data.length === 0) {
+    inboxDiv.innerHTML = "<p>Chưa có thư nào</p>";
+  } else {
+    data.forEach(msg => {
+      let item = document.createElement("div");
+      item.innerHTML = `<b>From:</b> ${msg.from} <br>
+                        <b>Subject:</b> ${msg.subject} <br>
+                        <button onclick="readMail(${msg.id})">Xem</button><hr>`;
+      inboxDiv.appendChild(item);
+    });
+  }
+}
+
+async function readMail(id) {
+  let url = `https://www.1secmail.com/api/v1/?action=readMessage&login=${emailUser}&domain=${emailDomain}&id=${id}`;
+  let res = await fetch(url);
+  let mail = await res.json();
+  alert("Nội dung: " + (mail.textBody || "(Email rỗng hoặc chỉ có HTML)"));
+}
+</script>
+</body>
+</html>
