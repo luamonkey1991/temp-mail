@@ -2,55 +2,124 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Email tạm miễn phí</title>
+  <title>Email tạm</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h2 { color: #333; }
-    button { margin: 5px; padding: 8px 12px; cursor: pointer; }
-    #inbox { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #ddd;
+      text-align: center;
+      padding: 40px;
+    }
+    h2 {
+      color: #004466;
+    }
+    .email-box {
+      display: inline-flex;
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    .email-input {
+      padding: 10px;
+      font-size: 18px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 4px 0 0 4px;
+      outline: none;
+    }
+    .domain {
+      background: #0b3c5d;
+      color: white;
+      padding: 10px;
+      font-size: 18px;
+    }
+    .check-btn {
+      background: gold;
+      border: none;
+      padding: 10px 15px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 0 4px 4px 0;
+    }
+    #inbox {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .mail-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+    .mail-item:last-child {
+      border-bottom: none;
+    }
   </style>
 </head>
 <body>
-  <h2>Email tạm</h2>
-  <button onclick="getEmail()">Tạo email</button>
-  <p>Email của bạn: <span id="email"></span></p>
-  <button onclick="checkInbox()">Làm mới hộp thư</button>
-  <div id="inbox"></div>
+  <h2>CHECK YOUR INBOX!</h2>
+
+  <div class="email-box">
+    <input id="userInput" class="email-input" type="text" placeholder="Enter inbox name">
+    <div class="domain">@1secmail.com</div>
+    <button class="check-btn" onclick="checkInbox()">Check</button>
+  </div>
+
+  <p>Example of empty inbox name: <b>abc123@1secmail.com</b></p>
+
+  <div id="inbox">
+    <p>Hộp thư sẽ hiển thị ở đây...</p>
+  </div>
 
 <script>
-let emailUser = "", emailDomain = "";
-
-function getEmail() {
-  emailUser = Math.random().toString(36).substring(2,10);
-  emailDomain = "1secmail.com";
-  document.getElementById("email").innerText = emailUser + "@" + emailDomain;
-}
+let emailUser = "";
+let emailDomain = "1secmail.com";
 
 async function checkInbox() {
-  if (!emailUser) return alert("Hãy tạo email trước");
+  emailUser = document.getElementById("userInput").value.trim();
+  if (!emailUser) {
+    alert("Nhập tên hộp thư trước!");
+    return;
+  }
+
   let url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${emailUser}&domain=${emailDomain}`;
   let res = await fetch(url);
   let data = await res.json();
   let inboxDiv = document.getElementById("inbox");
   inboxDiv.innerHTML = "";
+
   if (data.length === 0) {
     inboxDiv.innerHTML = "<p>Chưa có thư nào</p>";
   } else {
     data.forEach(msg => {
       let item = document.createElement("div");
+      item.className = "mail-item";
       item.innerHTML = `<b>From:</b> ${msg.from} <br>
                         <b>Subject:</b> ${msg.subject} <br>
-                        <button onclick="readMail(${msg.id})">Xem</button><hr>`;
+                        <button onclick="readMail(${msg.id}, '${emailUser}')">Xem</button>`;
       inboxDiv.appendChild(item);
     });
   }
 }
 
-async function readMail(id) {
-  let url = `https://www.1secmail.com/api/v1/?action=readMessage&login=${emailUser}&domain=${emailDomain}&id=${id}`;
+async function readMail(id, user) {
+  let url = `https://www.1secmail.com/api/v1/?action=readMessage&login=${user}&domain=${emailDomain}&id=${id}`;
   let res = await fetch(url);
   let mail = await res.json();
-  alert("Nội dung: " + (mail.textBody || "(Email rỗng hoặc chỉ có HTML)"));
+
+  let inboxDiv = document.getElementById("inbox");
+  let content = document.createElement("div");
+  content.className = "mail-item";
+  content.innerHTML = `<h3>${mail.subject}</h3>
+                       <p><b>From:</b> ${mail.from}</p>
+                       <p><b>Date:</b> ${mail.date}</p>
+                       <pre>${mail.textBody || "(Email rỗng hoặc chỉ có HTML)"}</pre>`;
+  inboxDiv.innerHTML = "";
+  inboxDiv.appendChild(content);
 }
 </script>
 </body>
