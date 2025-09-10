@@ -2,62 +2,19 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Email tạm</title>
+  <title>Email Inbox Viewer</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #ddd;
-      text-align: center;
-      padding: 40px;
-    }
-    h2 {
-      color: #004466;
-    }
-    .email-box {
-      display: inline-flex;
-      margin-top: 20px;
-      font-size: 18px;
-    }
-    .email-input {
-      padding: 10px;
-      font-size: 18px;
-      width: 250px;
-      border: 1px solid #ccc;
-      border-radius: 4px 0 0 4px;
-      outline: none;
-    }
-    .domain {
-      background: #0b3c5d;
-      color: white;
-      padding: 10px;
-      font-size: 18px;
-    }
-    .check-btn {
-      background: gold;
-      border: none;
-      padding: 10px 15px;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 0 4px 4px 0;
-    }
-    #inbox {
-      margin-top: 30px;
-      text-align: left;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 6px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    .mail-item {
-      border-bottom: 1px solid #ddd;
-      padding: 10px 0;
-    }
-    .mail-item:last-child {
-      border-bottom: none;
-    }
+    body { font-family: Arial; background: #ddd; text-align: center; padding: 40px; }
+    h2 { color: #004466; }
+    .email-box { display: inline-flex; margin-top: 20px; font-size: 18px; }
+    .email-input { padding: 10px; font-size: 18px; width: 250px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; }
+    .domain { background: #0b3c5d; color: white; padding: 10px; font-size: 18px; }
+    .check-btn { background: gold; border: none; padding: 10px 15px; font-weight: bold; cursor: pointer; border-radius: 0 4px 4px 0; }
+    #inbox { margin-top: 30px; text-align: left; max-width: 700px; margin-left: auto; margin-right: auto; background: white; padding: 20px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .mail-item { border-bottom: 1px solid #ddd; padding: 10px 0; }
+    .mail-item:last-child { border-bottom: none; }
+    button.read-btn { margin-top: 5px; background: #0b3c5d; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+    pre { white-space: pre-wrap; word-wrap: break-word; background: #f0f0f0; padding: 10px; border-radius: 4px; }
   </style>
 </head>
 <body>
@@ -69,7 +26,7 @@
     <button class="check-btn" onclick="checkInbox()">Check</button>
   </div>
 
-  <p>Example inbox: <b>abc123@luahaha.com</b></p>
+  <p>Nhập bất kỳ inbox name nào để kiểm tra.</p>
 
   <div id="inbox">
     <p>Hộp thư sẽ hiển thị ở đây...</p>
@@ -89,7 +46,7 @@ async function checkInbox() {
   inboxDiv.innerHTML = "<p>Đang tải email...</p>";
 
   try {
-    // Gọi API Vercel, có thể thêm query param nếu muốn lọc theo user
+    // Gọi API Vercel với tên inbox nhập vào
     const response = await fetch(`${apiUrl}?user=${emailUser}`);
     if (!response.ok) throw new Error('Không thể fetch API');
     const emails = await response.json();
@@ -104,9 +61,13 @@ async function checkInbox() {
     emails.forEach(mail => {
       const item = document.createElement("div");
       item.className = "mail-item";
-      item.innerHTML = `<b>From:</b> ${mail.from} <br>
-                        <b>Subject:</b> ${mail.subject} <br>
-                        <button onclick="readMail('${mail.id}')">Xem</button>`;
+      item.innerHTML = `
+        <b>From:</b> ${mail.from} <br>
+        <b>Subject:</b> ${mail.subject} <br>
+        <b>Date:</b> ${mail.date}</b><br>
+        <b>Snippet:</b> ${mail.snippet} <br>
+        <button class="read-btn" onclick="readMail('${mail.id}')">Xem đầy đủ</button>
+      `;
       inboxDiv.appendChild(item);
     });
 
@@ -131,10 +92,13 @@ async function readMail(id) {
     inboxDiv.innerHTML = "";
     const content = document.createElement("div");
     content.className = "mail-item";
-    content.innerHTML = `<h3>${mail.subject}</h3>
-                         <p><b>From:</b> ${mail.from}</p>
-                         <p><b>Date:</b> ${mail.date || ''}</p>
-                         <pre>${mail.body || "(Email rỗng)"}</pre>`;
+    content.innerHTML = `
+      <h3>${mail.subject}</h3>
+      <p><b>From:</b> ${mail.from}</p>
+      <p><b>Date:</b> ${mail.date || ''}</p>
+      <pre>${mail.body || "(Email rỗng)"}</pre>
+      <button class="read-btn" onclick="checkInbox()">Quay lại Inbox</button>
+    `;
     inboxDiv.appendChild(content);
 
   } catch (error) {
