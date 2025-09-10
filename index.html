@@ -69,57 +69,78 @@
     <button class="check-btn" onclick="checkInbox()">Check</button>
   </div>
 
-  <p>Example of empty inbox name: <b>abc123@luahaha.com</b></p>
+  <p>Example inbox: <b>abc123@luahaha.com</b></p>
 
   <div id="inbox">
     <p>Hộp thư sẽ hiển thị ở đây...</p>
   </div>
 
 <script>
-let emailUser = "";
-let emailDomain = "1secmail.com";
+const apiUrl = 'https://luahaha-com.vercel.app/api/emails';
 
 async function checkInbox() {
-  emailUser = document.getElementById("userInput").value.trim();
+  const emailUser = document.getElementById("userInput").value.trim();
   if (!emailUser) {
     alert("Nhập tên hộp thư trước!");
     return;
   }
 
-  let url = `https://www.1secmail.com/api/v1/?action=getMessages&login=${emailUser}&domain=${emailDomain}`;
-  let res = await fetch(url);
-  let data = await res.json();
-  let inboxDiv = document.getElementById("inbox");
-  inboxDiv.innerHTML = "";
+  const inboxDiv = document.getElementById("inbox");
+  inboxDiv.innerHTML = "<p>Đang tải email...</p>";
 
-  if (data.length === 0) {
-    inboxDiv.innerHTML = "<p>Chưa có thư nào</p>";
-  } else {
-    data.forEach(msg => {
-      let item = document.createElement("div");
+  try {
+    // Gọi API Vercel, có thể thêm query param nếu muốn lọc theo user
+    const response = await fetch(`${apiUrl}?user=${emailUser}`);
+    if (!response.ok) throw new Error('Không thể fetch API');
+    const emails = await response.json();
+
+    inboxDiv.innerHTML = "";
+
+    if (emails.length === 0) {
+      inboxDiv.innerHTML = "<p>Chưa có thư nào</p>";
+      return;
+    }
+
+    emails.forEach(mail => {
+      const item = document.createElement("div");
       item.className = "mail-item";
-      item.innerHTML = `<b>From:</b> ${msg.from} <br>
-                        <b>Subject:</b> ${msg.subject} <br>
-                        <button onclick="readMail(${msg.id}, '${emailUser}')">Xem</button>`;
+      item.innerHTML = `<b>From:</b> ${mail.from} <br>
+                        <b>Subject:</b> ${mail.subject} <br>
+                        <button onclick="readMail('${mail.id}')">Xem</button>`;
       inboxDiv.appendChild(item);
     });
+
+  } catch (error) {
+    inboxDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+    console.error(error);
   }
 }
 
-async function readMail(id, user) {
-  let url = `https://www.1secmail.com/api/v1/?action=readMessage&login=${user}&domain=${emailDomain}&id=${id}`;
-  let res = await fetch(url);
-  let mail = await res.json();
+async function readMail(id) {
+  const emailUser = document.getElementById("userInput").value.trim();
+  if (!emailUser) return;
 
-  let inboxDiv = document.getElementById("inbox");
-  let content = document.createElement("div");
-  content.className = "mail-item";
-  content.innerHTML = `<h3>${mail.subject}</h3>
-                       <p><b>From:</b> ${mail.from}</p>
-                       <p><b>Date:</b> ${mail.date}</p>
-                       <pre>${mail.textBody || "(Email rỗng hoặc chỉ có HTML)"}</pre>`;
-  inboxDiv.innerHTML = "";
-  inboxDiv.appendChild(content);
+  const inboxDiv = document.getElementById("inbox");
+  inboxDiv.innerHTML = "<p>Đang tải nội dung email...</p>";
+
+  try {
+    const response = await fetch(`${apiUrl}?user=${emailUser}&id=${id}`);
+    if (!response.ok) throw new Error('Không thể fetch email');
+    const mail = await response.json();
+
+    inboxDiv.innerHTML = "";
+    const content = document.createElement("div");
+    content.className = "mail-item";
+    content.innerHTML = `<h3>${mail.subject}</h3>
+                         <p><b>From:</b> ${mail.from}</p>
+                         <p><b>Date:</b> ${mail.date || ''}</p>
+                         <pre>${mail.body || "(Email rỗng)"}</pre>`;
+    inboxDiv.appendChild(content);
+
+  } catch (error) {
+    inboxDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+    console.error(error);
+  }
 }
 </script>
 </body>
