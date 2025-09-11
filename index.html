@@ -1,15 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Email Inbox Viewer</title>
   <style>
-    body { font-family: Arial; background: #ddd; text-align: center; padding: 40px; }
-    h2 { color: #004466; }
-    .email-box { display: inline-flex; margin-top: 20px; font-size: 18px; }
-    .email-input { padding: 10px; font-size: 18px; width: 250px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; }
-    .domain { background: #0b3c5d; color: white; padding: 10px; font-size: 18px; }
-    .check-btn { background: gold; border: none; padding: 10px 15px; font-weight: bold; cursor: pointer; border-radius: 0 4px 4px 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+      padding: 40px;
+    }
+    h2 {
+      color: #004466;
+    }
+    .email-box {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      font-size: 18px;
+      flex-wrap: wrap;
+    }
+    .email-input {
+      padding: 10px;
+      font-size: 18px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 4px 0 0 4px;
+      outline: none;
+    }
+    .domain {
+      background: #0b3c5d;
+      color: white;
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 0 4px 4px 0;
+    }
+    .check-btn {
+      background: gold;
+      border: none;
+      padding: 10px 15px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-left: 10px;
+    }
     #inbox {
       margin-top: 30px;
       text-align: left;
@@ -19,15 +54,49 @@
       background: white;
       padding: 20px;
       border-radius: 6px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       max-height: 500px;
       overflow-y: auto;
     }
-    .mail-item { border-bottom: 1px solid #ddd; padding: 10px 0; }
-    .mail-item:last-child { border-bottom: none; }
-    button.read-btn { margin-top: 5px; background: #0b3c5d; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
-    pre { white-space: pre-wrap; word-wrap: break-word; background: #f0f0f0; padding: 10px; border-radius: 4px; }
-    .full-email { max-width: 90%; margin: 20px auto; padding: 20px; background: white; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .mail-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+      font-size: 15px;
+    }
+    .mail-item:last-child {
+      border-bottom: none;
+    }
+    .snippet {
+      color: #555;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+    button.read-btn {
+      margin-top: 5px;
+      background: #0b3c5d;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    @media(max-width: 500px) {
+      .email-box {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .check-btn {
+        margin-left: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -46,7 +115,16 @@
   </div>
 
 <script>
-const apiUrl = '/';  // Chỉ đường dẫn root, rewrite sẽ trỏ tới /api/emails
+const apiUrl = '/api/emails';
+
+function formatDate(dateStr) {
+  return new Intl.DateTimeFormat("vi-VN", {
+    year: "numeric", month: "short", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Ho_Chi_Minh"
+  }).format(new Date(dateStr));
+}
 
 async function checkInbox() {
   const emailUser = document.getElementById("userInput").value.trim();
@@ -61,33 +139,23 @@ async function checkInbox() {
     const emails = await response.json();
 
     inboxDiv.innerHTML = "";
+    if (emails.length === 0) { inboxDiv.innerHTML = "<p>Chưa có thư nào</p>"; return; }
 
-    const filteredEmails = emails.filter(mail => mail.to?.endsWith("@luahaha.com") || mail.from?.endsWith("@luahaha.com"));
-
-    if (filteredEmails.length === 0) {
-      inboxDiv.innerHTML = "<p>Chưa có thư nào</p>";
-      return;
-    }
-
-    filteredEmails.forEach(mail => {
-      const dateStr = new Intl.DateTimeFormat("vi-VN", {
-        year: "numeric", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", second: "2-digit",
-        hour12: false, timeZone: "Asia/Ho_Chi_Minh"
-      }).format(new Date(mail.date));
+    emails.forEach(mail => {
+      const dateStr = formatDate(mail.date);
 
       const item = document.createElement("div");
       item.className = "mail-item";
       item.innerHTML = `
-        <b>From:</b> ${mail.from} <br>
-        <b>Subject:</b> ${mail.subject} <br>
-        <b>Date:</b> ${dateStr}<br>
-        <b>Nội Dung Email:</b> ${mail.snippet} <br>
+        <b>from:</b> ${mail.from} <br>
+        <b>to:</b> ${mail.to} <br>
+        <b>date:</b> ${dateStr} <br>
+        <b>subject:</b> ${mail.subject} <br>
+        <div class="snippet">${mail.snippet || ""}</div>
         <button class="read-btn" onclick="readMail('${mail.id}')">Xem đầy đủ</button>
       `;
       inboxDiv.appendChild(item);
     });
-
   } catch (error) {
     inboxDiv.innerHTML = `<p>Error: ${error.message}</p>`;
     console.error(error);
@@ -106,24 +174,21 @@ async function readMail(id) {
     if (!response.ok) throw new Error('Không thể fetch email');
     const mail = await response.json();
 
-    const dateStr = new Intl.DateTimeFormat("vi-VN", {
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit", second: "2-digit",
-      hour12: false, timeZone: "Asia/Ho_Chi_Minh"
-    }).format(new Date(mail.date));
+    const dateStr = formatDate(mail.date);
 
     inboxDiv.innerHTML = "";
     const content = document.createElement("div");
-    content.className = "full-email";
+    content.className = "mail-item";
+    content.style.maxHeight = "none"; // hiển thị toàn bộ
     content.innerHTML = `
-      <h3>${mail.subject}</h3>
-      <p><b>From:</b> ${mail.from}</p>
-      <p><b>Date:</b> ${dateStr}</p>
+      <b>from:</b> ${mail.from} <br>
+      <b>to:</b> ${mail.to} <br>
+      <b>date:</b> ${dateStr} <br>
+      <b>subject:</b> ${mail.subject} <br>
       <pre>${mail.body || "(Email rỗng)"}</pre>
       <button class="read-btn" onclick="checkInbox()">Quay lại Inbox</button>
     `;
     inboxDiv.appendChild(content);
-
   } catch (error) {
     inboxDiv.innerHTML = `<p>Error: ${error.message}</p>`;
     console.error(error);
