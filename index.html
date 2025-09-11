@@ -20,7 +20,7 @@
       padding: 20px;
       border-radius: 6px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      max-height: 500px; /* tối ưu scroll */
+      max-height: 500px;
       overflow-y: auto;
     }
     .mail-item { border-bottom: 1px solid #ddd; padding: 10px 0; }
@@ -46,7 +46,7 @@
   </div>
 
 <script>
-const apiUrl = '/';
+const apiUrl = '/';  // Chỉ đường dẫn root, rewrite sẽ trỏ tới /api/emails
 
 async function checkInbox() {
   const emailUser = document.getElementById("userInput").value.trim();
@@ -62,7 +62,6 @@ async function checkInbox() {
 
     inboxDiv.innerHTML = "";
 
-    // Chỉ hiển thị email có đuôi @luahaha.com
     const filteredEmails = emails.filter(mail => mail.to?.endsWith("@luahaha.com") || mail.from?.endsWith("@luahaha.com"));
 
     if (filteredEmails.length === 0) {
@@ -115,7 +114,7 @@ async function readMail(id) {
 
     inboxDiv.innerHTML = "";
     const content = document.createElement("div");
-    content.className = "full-email"; // Rộng hơn khi xem đầy đủ
+    content.className = "full-email";
     content.innerHTML = `
       <h3>${mail.subject}</h3>
       <p><b>From:</b> ${mail.from}</p>
