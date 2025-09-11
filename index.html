@@ -5,32 +5,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Email Inbox Viewer</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; text-align: center; padding: 40px; }
-    h2 { color: #004466; }
-    .email-box { display: flex; justify-content: center; margin-top: 20px; font-size: 18px; flex-wrap: wrap; }
-    .email-input { padding: 10px; font-size: 18px; width: 250px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; }
-    .domain { background: #0b3c5d; color: white; padding: 10px; font-size: 18px; border-radius: 0 4px 4px 0; }
-    .check-btn { background: gold; border: none; padding: 10px 15px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-left: 10px; }
-    #inbox { margin-top: 30px; text-align: left; max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); max-height: 500px; overflow-y: auto; }
-    .mail-item { border-bottom: 1px solid #ddd; padding: 10px 0; font-size: 15px; }
-    .mail-item:last-child { border-bottom: none; }
-    .snippet { color: #555; font-size: 13px; margin-top: 2px; }
-    button.read-btn { margin-top: 5px; background: #0b3c5d; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
-    pre { white-space: pre-wrap; word-wrap: break-word; background: #f0f0f0; padding: 10px; border-radius: 4px; font-size: 14px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+      padding: 40px;
+    }
+    h2 {
+      color: #004466;
+    }
+    .email-box {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      font-size: 18px;
+      flex-wrap: wrap;
+    }
+    .email-input {
+      padding: 10px;
+      font-size: 18px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 4px 0 0 4px;
+      outline: none;
+    }
+    .domain {
+      background: #0b3c5d;
+      color: white;
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 0 4px 4px 0;
+    }
+    .check-btn {
+      background: gold;
+      border: none;
+      padding: 10px 15px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-left: 10px;
+    }
+    #inbox {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .mail-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+      font-size: 15px;
+    }
+    .mail-item:last-child {
+      border-bottom: none;
+    }
+    .snippet {
+      color: #555;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+    button.read-btn {
+      margin-top: 5px;
+      background: #0b3c5d;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
     @media(max-width: 500px) {
-      .email-box { flex-direction: column; gap: 10px; }
-      .check-btn { margin-left: 0; }
+      .email-box {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .check-btn {
+        margin-left: 0;
+      }
     }
   </style>
 </head>
 <body>
   <h2>CHECK YOUR INBOX!</h2>
+
   <div class="email-box">
     <input id="userInput" class="email-input" type="text" placeholder="Enter inbox name">
     <div class="domain">@luahaha.com</div>
     <button class="check-btn" onclick="checkInbox()">Check</button>
   </div>
+
   <p>Nhập bất kỳ inbox name nào để kiểm tra.</p>
+
   <div id="inbox">
     <p>Hộp thư sẽ hiển thị ở đây...</p>
   </div>
@@ -64,6 +143,7 @@ async function checkInbox() {
 
     emails.forEach(mail => {
       const dateStr = formatDate(mail.date);
+
       const item = document.createElement("div");
       item.className = "mail-item";
       item.innerHTML = `
@@ -95,10 +175,11 @@ async function readMail(id) {
     const mail = await response.json();
 
     const dateStr = formatDate(mail.date);
+
     inboxDiv.innerHTML = "";
     const content = document.createElement("div");
     content.className = "mail-item";
-    content.style.maxHeight = "none";
+    content.style.maxHeight = "none"; // hiển thị toàn bộ
     content.innerHTML = `
       <b>from:</b> ${mail.from} <br>
       <b>to:</b> ${mail.to} <br>
