@@ -10,7 +10,19 @@
     .email-input { padding: 10px; font-size: 18px; width: 250px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; }
     .domain { background: #0b3c5d; color: white; padding: 10px; font-size: 18px; }
     .check-btn { background: gold; border: none; padding: 10px 15px; font-weight: bold; cursor: pointer; border-radius: 0 4px 4px 0; }
-    #inbox { margin-top: 30px; text-align: left; max-width: 700px; margin-left: auto; margin-right: auto; background: white; padding: 20px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    #inbox {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      max-height: 500px; /* tối ưu scroll */
+      overflow-y: auto;
+    }
     .mail-item { border-bottom: 1px solid #ddd; padding: 10px 0; }
     .mail-item:last-child { border-bottom: none; }
     button.read-btn { margin-top: 5px; background: #0b3c5d; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
@@ -46,7 +58,6 @@ async function checkInbox() {
   inboxDiv.innerHTML = "<p>Đang tải email...</p>";
 
   try {
-    // Gọi API Vercel với tên inbox nhập vào
     const response = await fetch(`${apiUrl}?user=${emailUser}`);
     if (!response.ok) throw new Error('Không thể fetch API');
     const emails = await response.json();
@@ -64,7 +75,7 @@ async function checkInbox() {
       item.innerHTML = `
         <b>From:</b> ${mail.from} <br>
         <b>Subject:</b> ${mail.subject} <br>
-        <b>Date:</b> ${mail.date}</b><br>
+        <b>Date:</b> ${mail.date}<br>
         <b>Snippet:</b> ${mail.snippet} <br>
         <button class="read-btn" onclick="readMail('${mail.id}')">Xem đầy đủ</button>
       `;
