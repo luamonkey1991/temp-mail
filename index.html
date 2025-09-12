@@ -8,218 +8,148 @@
     body {
       font-family: Arial, sans-serif;
       background: #f5f5f5;
-      text-align: center;
-      padding: 40px;
-    }
-    h2 {
-      color: #004466;
-    }
-    .email-box {
+      margin: 0;
       display: flex;
-      justify-content: center;
-      margin-top: 20px;
-      font-size: 18px;
-      flex-wrap: wrap;
+      height: 100vh;
     }
-    .email-input {
-      padding: 10px;
-      font-size: 18px;
-      width: 250px;
-      border: 1px solid #ccc;
-      border-radius: 4px 0 0 4px;
-      outline: none;
-    }
-    .domain {
+    .sidebar {
       background: #0b3c5d;
       color: white;
-      padding: 10px;
-      font-size: 18px;
-      border-radius: 0 4px 4px 0;
-    }
-    .check-btn {
-      background: gold;
-      border: none;
-      padding: 10px 15px;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 4px;
-      margin-left: 10px;
-    }
-    #inbox {
-      margin-top: 30px;
-      text-align: left;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
-      background: white;
       padding: 20px;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      max-height: 500px;
+      width: 300px;
+      box-sizing: border-box;
+    }
+    .sidebar input {
+      width: 100%;
+      padding: 10px;
+    }
+    .email-list {
+      margin-top: 20px;
+      list-style-type: none;
+      padding: 0;
+      overflow-y: auto;
+      max-height: calc(100vh - 140px);
+    }
+    .email-item {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #ccc;
+    }
+    .email-item:hover {
+      background: #555;
+    }
+    .content {
+      flex: 1;
+      padding: 20px;
+      box-sizing: border-box;
       overflow-y: auto;
     }
-    .mail-item {
-      border-bottom: 1px solid #ddd;
-      padding: 10px 0;
-      font-size: 15px;
-    }
-    .mail-item:last-child {
-      border-bottom: none;
-    }
-    .snippet {
-      color: #555;
-      font-size: 13px;
-      margin-top: 2px;
-    }
-    button.read-btn {
-      margin-top: 5px;
-      background: #0b3c5d;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    pre {
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      background: #f0f0f0;
-      padding: 10px;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-    .mail-view {
-      max-width: 800px;
-      margin: 20px auto;
+    .email-view {
       background-color: #fff;
-      padding: 20px;
+      padding: 30px;
       border-radius: 6px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-    .mail-view h3 {
-      margin-bottom: 10px;
-    }
-    .mail-view p {
-      margin: 5px 0;
-    }
-    @media(max-width: 500px) {
-      .email-box {
-        flex-direction: column;
-        gap: 10px;
-      }
-      .check-btn {
-        margin-left: 0;
-      }
-      #inbox {
-        max-width: 90%;
-      }
-      .mail-view {
-        max-width: 95%;
-      }
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <h2>CHECK YOUR INBOX!</h2>
-
-  <div class="email-box">
-    <input id="userInput" class="email-input" type="text" placeholder="Enter inbox name">
-    <div class="domain">@luahaha.com</div>
-    <button class="check-btn" onclick="checkInbox()">Check</button>
+  <div class="sidebar">
+    <h2>CHECK YOUR INBOX!</h2>
+    <input id="userInput" type="text" placeholder="Enter inbox name">
+    <button onclick="checkInbox()">Check</button>
+    <ul id="emailList" class="email-list"></ul>
   </div>
-
-  <p>Nhập bất kỳ inbox name nào để kiểm tra.</p>
-
-  <div id="inbox">
-    <p>Hộp thư sẽ hiển thị ở đây...</p>
+  <div class="content">
+    <div id="emailContent" class="email-view hidden">
+      <h3></h3>
+      <p><b>From:</b> <span id="emailFrom"></span></p>
+      <p><b>To:</b> <span id="emailTo"></span></p>
+      <p><b>Date:</b> <span id="emailDate"></span></p>
+      <pre id="emailBody"></pre>
+      <button onclick="backToList()">Quay lại Inbox</button>
+    </div>
   </div>
+  <script>
+    const apiUrl = '/api/emails';
 
-<script>
-const apiUrl = '/api/emails';
+    function formatDate(dateStr) {
+      return new Intl.DateTimeFormat("vi-VN", {
+        year: "numeric", month: "short", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", second: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Ho_Chi_Minh"
+      }).format(new Date(dateStr));
+    }
 
-function formatDate(dateStr) {
-  return new Intl.DateTimeFormat("vi-VN", {
-    year: "numeric", month: "short", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-    hour12: false,
-    timeZone: "Asia/Ho_Chi_Minh"
-  }).format(new Date(dateStr));
-}
+    async function checkInbox() {
+      const emailUser = document.getElementById("userInput").value.trim();
+      if (!emailUser) { alert("Nhập tên hộp thư trước!"); return; }
 
-async function checkInbox() {
-  const emailUser = document.getElementById("userInput").value.trim();
-  if (!emailUser) { alert("Nhập tên hộp thư trước!"); return; }
+      const emailList = document.getElementById("emailList");
+      emailList.innerHTML = "<li>Đang tải email...</li>";
 
-  const inboxDiv = document.getElementById("inbox");
-  inboxDiv.innerHTML = "<p>Đang tải email...</p>";
+      try {
+        const response = await fetch(\`\${apiUrl}?user=\${emailUser}\`);
+        if (!response.ok) throw new Error('Không thể fetch API');
+        const emails = await response.json();
 
-  try {
-    const response = await fetch(`${apiUrl}?user=${emailUser}`);
-    if (!response.ok) throw new Error('Không thể fetch API');
-    const emails = await response.json();
+        emailList.innerHTML = "";
+        if (emails.length === 0) {
+          emailList.innerHTML = "<li>Chưa có thư nào</li>";
+          return;
+        }
 
-    inboxDiv.innerHTML = "";
-    if (emails.length === 0) { inboxDiv.innerHTML = "<p>Chưa có thư nào</p>"; return; }
+        emails.forEach(mail => {
+          const dateStr = formatDate(mail.date);
 
-    emails.forEach(mail => {
-      const dateStr = formatDate(mail.date);
-
-      const item = document.createElement("div");
-      item.className = "mail-item";
-      item.innerHTML = `
-        <b>from:</b> ${mail.from} <br>
-        <b>to:</b> ${mail.to} <br>
-        <b>date:</b> ${dateStr} <br>
-        <b>subject:</b> ${mail.subject} <br>
-        <div class="snippet">${mail.snippet || ""}</div>
-        <button class="read-btn" onclick="readMail('${mail.id}')">Xem đầy đủ</button>
-      `;
-      inboxDiv.appendChild(item);
-    });
-  } catch (error) {
-    inboxDiv.innerHTML = `<p>Error: ${error.message}</p>`;
-    console.error(error);
-  }
-}
-
-async function readMail(id) {
-  const emailUser = document.getElementById("userInput").value.trim();
-  if (!emailUser) return;
-
-  const inboxDiv = document.getElementById("inbox");
-  inboxDiv.innerHTML = "<p>Đang tải nội dung email...</p>";
-
-  try {
-    const response = await fetch(`${apiUrl}?user=${emailUser}&id=${id}`);
-    if (!response.ok) throw new Error('Không thể fetch email');
-    const mail = await response.json();
-
-    const dateStr = formatDate(mail.date);
-
-    inboxDiv.innerHTML = "";
-    const content = document.createElement("div");
-    content.className = "mail-view";
-    content.innerHTML = `
-      <h3>${mail.subject}</h3>
-      <p><b>From:</b> ${mail.from}</p>
-      <p><b>To:</b> ${mail.to}</p>
-      <p><b>Date:</b> ${dateStr}</p>
-      <pre>${mail.body || "(Email rỗng)"}</pre>
-      <button class="read-btn" onclick="checkInbox()">Quay lại Inbox</button>
-    `;
-     inboxDiv.appendChild(content);
+          const item = document.createElement("li");
+          item.className = "email-item";
+          item.innerHTML = \`
+            <b>from:</b> \${mail.from} <br>
+            <b>subject:</b> \${mail.subject} <br>
+            <b>date:</b> \${dateStr}
+          \`;
+          item.onclick = () => readMail(mail.id);
+          emailList.appendChild(item);
+        });
       } catch (error) {
-        inboxDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+        emailList.innerHTML = \`<li>Error: \${error.message}</li>\`;
         console.error(error);
       }
     }
 
-    // Thêm sự kiện lắng nghe cho phím Enter
-    document.getElementById('userInput').addEventListener('keypress', function(event) {
-      if (event.key === "Enter") {
-        checkInbox();
+    async function readMail(id) {
+      const emailUser = document.getElementById("userInput").value.trim();
+      if (!emailUser) return;
+
+      const emailContent = document.getElementById("emailContent");
+      emailContent.classList.remove("hidden");
+
+      try {
+        const response = await fetch(\`\${apiUrl}?user=\${emailUser}&id=\${id}\`);
+        if (!response.ok) throw new Error('Không thể fetch email');
+        const mail = await response.json();
+
+        const dateStr = formatDate(mail.date);
+
+        emailContent.querySelector("h3").innerText = mail.subject;
+        document.getElementById("emailFrom").innerText = mail.from;
+        document.getElementById("emailTo").innerText = mail.to;
+        document.getElementById("emailDate").innerText = dateStr;
+        document.getElementById("emailBody").innerText = mail.body || "(Email rỗng)";
+      } catch (error) {
+        emailContent.innerHTML = \`<p>Error: \${error.message}</p>\`;
+        console.error(error);
       }
-    });
-</script>
+    }
+
+    function backToList() {
+      const emailContent = document.getElementById("emailContent");
+      emailContent.classList.add("hidden");
+    }
+  </script>
 </body>
 </html>
